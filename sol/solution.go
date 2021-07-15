@@ -1,46 +1,51 @@
 package sol
 
+import (
+	"container/heap"
+)
+
+type NodeHeap []*ListNode
+
+func (h NodeHeap) Len() int {
+	return len(h)
+}
+func (h NodeHeap) Less(i, j int) bool {
+	return h[i].Val <= h[j].Val
+}
+func (h NodeHeap) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+}
+func (h *NodeHeap) Push(x interface{}) {
+	*h = append(*h, x.(*ListNode))
+}
+func (h *NodeHeap) Pop() interface{} {
+	old := *h
+	value := old[len(old)-1]
+	*h = old[:len(old)-1]
+	return value
+}
+
 func mergeKLists(lists []*ListNode) *ListNode {
 	var head *ListNode
-	k := len(lists)
-	if k == 0 {
-		return head
-	}
-	if k == 1 && lists[0] == nil {
-		return head
-	}
-	finish := 0
-	min := 0
-	minIdx := 0
-	is_min_set := false
-	var current *ListNode
-	for finish < k {
-		for idx, _ := range lists {
-			if !is_min_set && lists[idx] != nil {
-				min = lists[idx].Val
-				is_min_set = true
-			}
-			if lists[idx] != nil && lists[idx].Val <= min {
-				min = lists[idx].Val
-				minIdx = idx
-			}
+	var currentNode *ListNode
+	q := &NodeHeap{}
+	for _, node := range lists {
+		if node != nil {
+			heap.Push(q, node)
 		}
-		if lists[minIdx] == nil {
-			return head
+	}
+	for q.Len() > 0 {
+		n := heap.Pop(q).(*ListNode)
+		if n.Next != nil {
+			heap.Push(q, n.Next)
 		}
-		node := &ListNode{Val: lists[minIdx].Val}
-		is_min_set = false
+
 		if head == nil {
-			head = node
-			current = node
+			head = n
+			currentNode = n
 		} else {
-			current.Next = node
-			current = current.Next
-		}
-		if lists[minIdx] != nil {
-			lists[minIdx] = lists[minIdx].Next
-		} else {
-			finish += 1
+			currentNode.Next = n
+			currentNode = currentNode.Next
 		}
 	}
 	return head
